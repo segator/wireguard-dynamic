@@ -7,7 +7,7 @@ import (
 	"net"
 	"strconv"
 	"time"
-	"wireguard-dynamic/retry"
+	"github.com/segator/wireguard-dynamic/retry"
 )
 
 
@@ -18,6 +18,7 @@ type SimpleMeshService struct {
 	mesh Mesh
 	localPeer *MeshLocalPeer
 	peers *RemotePeersStored
+	shutdown bool
 }
 
 
@@ -31,6 +32,7 @@ func NewSimpleMeshService(repository PeerRepository,network NetworkService) Mesh
 }
 
 func (meshService *SimpleMeshService) Stop() {
+	meshService.shutdown=true
 	_,err :=retry.Do(func()  (interface{},*retry.RetryError){
 		err := meshService.repository.Delete(meshService.mesh.MeshID,meshService.localPeer)
 		if err!=nil {
@@ -117,6 +119,9 @@ func calculatePublicIP(meshService  *SimpleMeshService) string {
 }
 func monitorPeers(meshService *SimpleMeshService,remotePeerStore *RemotePeersStored){
    for {
+   	   if meshService.shutdown {
+   	   	return
+	   }
 	   peersInterface,err :=retry.Do(func()  (interface{},*retry.RetryError){
 		   peersStored,err := meshService.repository.FindAll(meshService.mesh.MeshID)
 		   if err!=nil {
@@ -177,6 +182,9 @@ func monitorPeers(meshService *SimpleMeshService,remotePeerStore *RemotePeersSto
 }
 func monitorPublicIP(meshService *SimpleMeshService,remotePeerStore *RemotePeersStored){
 	for {
+		if meshService.shutdown {
+			return
+		}
 		if meshService.localPeer.AutoPublicIP {
 			newPublicIP := calculatePublicIP(meshService)
 			if(meshService.localPeer.PublicIP != newPublicIP){

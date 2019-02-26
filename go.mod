@@ -1,1 +1,1 @@
-module wireguard-dynamic
+module github.com/segator/wireguard-dynamic

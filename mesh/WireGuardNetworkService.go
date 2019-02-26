@@ -8,7 +8,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
-	"wireguard-dynamic/cmd"
+	"github.com/segator/wireguard-dynamic/cmd"
 )
 type WireGuardNetworkService struct {
 	InterfaceName string

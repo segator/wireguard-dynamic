@@ -1,15 +1,13 @@
 package main
 
 import (
-	"encoding/json"
 	"flag"
 	"fmt"
-	"log"
 	"os"
 	"os/signal"
 	"strings"
 	"syscall"
-	"wireguard-dynamic/mesh"
+	"github.com/segator/wireguard-dynamic/mesh"
 )
 
 type cmdLineOpts struct {
@@ -58,12 +56,7 @@ func main() {
 	me :=mesh.NewSimpleMeshService(storeRepository,networkService)
 	if opts.init {
 		mesh :=me.CreateMesh()
-		meshJson, err := json.Marshal(mesh)
-		if err != nil {
-			log.Fatal(err)
-			return
-		}
-		fmt.Println(string(meshJson))
+		fmt.Println(mesh.MeshID)
 	}else if opts.join{
 		if opts.meshPeer.PublicIP == "auto" {
 			opts.meshPeer.AutoPublicIP=true
@@ -78,10 +71,10 @@ func main() {
 			opts.meshPeer.AllowedIPs = strings.Split(subnets,",")
 		}
 		me.JoinMesh(opts.mesh,opts.meshPeer)
+		<-chanOSSignal
+		fmt.Println("Signal detected, closing network")
+		me.Stop()
 	}
 
-	<-chanOSSignal
-	fmt.Println("Signal detected, closing network")
-	me.Stop()
 	os.Exit(0)
 }
