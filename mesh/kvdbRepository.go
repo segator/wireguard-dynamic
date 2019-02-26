@@ -118,7 +118,7 @@ func (repository *KVDBRepository) Delete(bucket string, peer *MeshLocalPeer) err
 	}
 	resp, err :=client.Do(request)
 	defer resp.Body.Close()
-	if resp.StatusCode == http.StatusOK {
+	if resp.StatusCode == http.StatusAccepted {
 		return nil
 	}else{
 		return  &errorString{
