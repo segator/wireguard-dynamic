@@ -50,8 +50,9 @@ docker run -d --restart=always \
 
 ## Features
 * [X] Peer auto discovery
-* [ ] Support zookeeper
-* [ ] Support ETCD
-* [ ] Support https://keyvalue.xyz/
+* [X] Dynamic IP support(Ready for home-user connections)
+* [ ] NAT passthorugh(UPNP and UDP Hole punching using STUN servers)
+* [ ] Support other stores,typical K/V(etcd,consul,zookeeper...)
+* [ ] Support other public kv: https://keyvalue.xyz/
 * [ ] Kubernetes CNI
 
