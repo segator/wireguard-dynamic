@@ -2,7 +2,7 @@ package main
 
 import (
 	"flag"
-	"fmt"
+	"log"
 	"os"
 	"os/signal"
 	"strings"
@@ -43,7 +43,7 @@ func main() {
 		joinCmd.IntVar(&opts.meshPeer.KeepAlive, "keep-alive", 15, "Keep Alive in seconds")
 		joinCmd.Parse(os.Args[2:])
 	default:
-		fmt.Printf("%q is not valid command.\n", os.Args[1])
+		log.Printf("%q is not valid command.\n", os.Args[1])
 		os.Exit(2)
 	}
 
@@ -56,7 +56,7 @@ func main() {
 	me :=mesh.NewSimpleMeshService(storeRepository,networkService)
 	if opts.init {
 		mesh :=me.CreateMesh()
-		fmt.Println(mesh.MeshID)
+		log.Println(mesh.MeshID)
 	}else if opts.join{
 		if opts.meshPeer.PublicIP == "auto" {
 			opts.meshPeer.AutoPublicIP=true
@@ -72,7 +72,7 @@ func main() {
 		}
 		me.JoinMesh(opts.mesh,opts.meshPeer)
 		<-chanOSSignal
-		fmt.Println("Signal detected, closing network")
+		log.Println("Signal detected, closing network")
 		me.Stop()
 	}
 

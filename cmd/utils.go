@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"errors"
-	"fmt"
 	"io"
 	"log"
 	"os"
@@ -22,7 +21,7 @@ func Command(name string, arg...string) int{
 	var waitStatus syscall.WaitStatus
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
-	fmt.Println("Exec: "+ strings.Join(cmd.Args," "))
+	log.Println("Exec: "+ strings.Join(cmd.Args," "))
 	if err :=cmd.Run(); err!=nil {
 		if exitError, ok := err.(*exec.ExitError); ok {
 			waitStatus = exitError.Sys().(syscall.WaitStatus)
@@ -50,7 +49,7 @@ func CommandCaptureOutput(name string, arg...string) (string,error){
 
 func CommandCaptureOutputStdin(stdin string, name string, arg...string) (string, error) {
 	cmd := exec.Command(name, arg...)
-	fmt.Println("Exec: "+ strings.Join(cmd.Args," "))
+	log.Println("Exec: "+ strings.Join(cmd.Args," "))
 	var waitStatus syscall.WaitStatus
 	cmd.Stderr = os.Stderr
 	if stdin != "" {

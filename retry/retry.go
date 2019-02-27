@@ -31,8 +31,8 @@ func Do(retryableFunction RetryFunction) (interface{},error)  {
 		if retryError != nil {
 			if retryError.RequireRetry {
 				retryTime=retryTime*2
-				if retryTime>(time.Duration(60) * time.Second) {
-					retryTime=time.Duration(60) * time.Second
+				if retryTime>(time.Duration(15) * time.Second) {
+					retryTime=time.Duration(15) * time.Second
 				}
 				elapsed := time.Now().Sub(startActionTime)
 

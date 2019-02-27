@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/base64"
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -95,7 +94,7 @@ func  (repository *KVDBRepository) Store(bucket string,peer MeshRemotePeer) erro
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode != http.StatusCreated && resp.StatusCode != http.StatusOK {
-		fmt.Print(url)
+		log.Print(url)
 		return  &errorString{
 			s: "invalid status code: "+strconv.Itoa(resp.StatusCode),
 		}

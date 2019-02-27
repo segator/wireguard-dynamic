@@ -1,7 +1,6 @@
 package mesh
 
 import (
-	"fmt"
 	"log"
 	"math/rand"
 	"net"
@@ -88,7 +87,7 @@ func  (meshService *SimpleMeshService) JoinMesh(mesh Mesh,localPeer MeshLocalPee
 		remotePeers:[]*MeshRemotePeer{},
 	}
 	if len(peersStored)==0{
-		fmt.Println("--> This is the first node on the mesh!!")
+		log.Println("--> This is the first node on the mesh!!")
 	}
 	if meshService.localPeer.AutoVPNIP {
 		meshService.localPeer.VPNIP = findFreeIP(peersStored)
@@ -188,7 +187,7 @@ func monitorPublicIP(meshService *SimpleMeshService,remotePeerStore *RemotePeers
 		if meshService.localPeer.AutoPublicIP {
 			newPublicIP := calculatePublicIP(meshService)
 			if(meshService.localPeer.PublicIP != newPublicIP){
-				fmt.Println("---->New IP Address: "+ newPublicIP)
+				log.Println("---->New IP Address: "+ newPublicIP)
 				meshService.localPeer.PublicIP =newPublicIP
 				meshService.localPeer.version++
 			}
