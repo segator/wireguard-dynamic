@@ -8,9 +8,9 @@ type MeshService interface {
 
 type NetworkService interface {
 	InitializeNetworkDevice(peer *MeshLocalPeer)
-	LinkPeer(peer MeshRemotePeer)
-	UpdatePeer(peer MeshRemotePeer)
-	UnlinkPeer(peer MeshRemotePeer)
+	LinkPeer(localPeer *MeshLocalPeer,peer MeshRemotePeer)
+	UpdatePeer(localPeer *MeshLocalPeer,peer MeshRemotePeer)
+	UnlinkPeer(localPeer *MeshLocalPeer,peer MeshRemotePeer)
 	DestroyNetworkDevice(peer MeshLocalPeer)
 }
 

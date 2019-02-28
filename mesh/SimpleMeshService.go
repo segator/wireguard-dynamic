@@ -44,7 +44,7 @@ func (meshService *SimpleMeshService) Stop() {
 	}
 
 	for _,peer := range meshService.peers.remotePeers{
-		meshService.network.UnlinkPeer(*peer)
+		meshService.network.UnlinkPeer(meshService.localPeer,*peer)
 	}
 	meshService.network.DestroyNetworkDevice(*meshService.localPeer)
 }
@@ -141,14 +141,14 @@ func monitorPeers(meshService *SimpleMeshService,remotePeerStore *RemotePeersSto
 						found=true
 						if remotePeer.version > remotePeerBefore.version {
 							remotePeerStore.remotePeers[storeIndex] = remotePeer
-							meshService.network.UpdatePeer(*remotePeer)
+							meshService.network.UpdatePeer(meshService.localPeer,*remotePeer)
 						}
 					}
 				}
 		   	    //Add new Peers
 		   	    if !found {
 					if meshService.localPeer.PublicKey != remotePeer.PublicKey {
-						meshService.network.LinkPeer(*remotePeer)
+						meshService.network.LinkPeer(meshService.localPeer,*remotePeer)
 						remotePeerStore.remotePeers = append(remotePeerStore.remotePeers,remotePeer)
 					}
 				}
@@ -172,7 +172,7 @@ func monitorPeers(meshService *SimpleMeshService,remotePeerStore *RemotePeersSto
 			   }
 		   }
 		   for _, unlinkPeer := range toUnBind {
-			   meshService.network.UnlinkPeer(*unlinkPeer)
+			   meshService.network.UnlinkPeer(meshService.localPeer,*unlinkPeer)
 		   }
 		   remotePeerStore.remotePeers = newPeerList
 	   }

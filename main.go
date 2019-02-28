@@ -2,12 +2,13 @@ package main
 
 import (
 	"flag"
+	"fmt"
+	"github.com/segator/wireguard-dynamic/mesh"
 	"log"
 	"os"
 	"os/signal"
 	"strings"
 	"syscall"
-	"github.com/segator/wireguard-dynamic/mesh"
 )
 
 type cmdLineOpts struct {
@@ -41,10 +42,11 @@ func main() {
 		joinCmd.StringVar(&subnets, "accept-networks", "", "network list splited with ,(coma) so other Nodes will know how to achieve those subnets through this node")
 		//joinCmd.StringVar(&subnets, "accept-networks-routing", "NONE", "how other nodes will route to accepted networks of this node(MASQUERADE, NONE, FORWARD)")
 		joinCmd.IntVar(&opts.meshPeer.KeepAlive, "keep-alive", 15, "Keep Alive in seconds")
+		joinCmd.StringVar(&opts.meshPeer.DeviceName, "device-name", "wg0", "Device name, by default wg0")
 		joinCmd.Parse(os.Args[2:])
 	default:
-		log.Printf("%q is not valid command.\n", os.Args[1])
-		os.Exit(2)
+		fmt.Fprintf(os.Stderr, "wireguard-dynamic init #this create new mesh token\nwireguard-dynamic join #this join this node to a existing mesh")
+		os.Exit(1)
 	}
 
 	//Get Repo Type

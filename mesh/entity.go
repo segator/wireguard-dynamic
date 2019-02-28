@@ -18,6 +18,7 @@ type MeshLocalPeer struct {
 	MeshRemotePeer
 	AutoPublicIP bool
 	AutoVPNIP bool
+	DeviceName string
 	ListenPort int `json:"listen_port"`
 	PrivateKey string  `json:"private_key"`
 	PrivateKeyPath string  `json:"private_key_path"`

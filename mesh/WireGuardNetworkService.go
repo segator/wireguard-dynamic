@@ -10,36 +10,34 @@ import (
 	"github.com/segator/wireguard-dynamic/cmd"
 )
 type WireGuardNetworkService struct {
-	InterfaceName string
 	InterfaceMTU int
 }
 
 
 func NewWireGuardNetworkService() NetworkService {
 	return &WireGuardNetworkService{
-		InterfaceName:"wg0",
 		InterfaceMTU: 1420,
 	}
 }
 
 func (wireguard *WireGuardNetworkService) InitializeNetworkDevice(peer *MeshLocalPeer) {
 	//Delete if exists
-	cmd.Command("ip","link","delete","dev",wireguard.InterfaceName)
-	cmd.Command("iptables","-D","FORWARD","-i",wireguard.InterfaceName ,"-j","ACCEPT")
+	cmd.Command("ip","link","delete","dev",peer.DeviceName)
+	cmd.Command("iptables","-D","FORWARD","-i",peer.DeviceName ,"-j","ACCEPT")
 
-	log.Println("---->Initializing Wireguard Device " + wireguard.InterfaceName)
+	log.Println("---->Initializing Wireguard Device " + peer.DeviceName)
 
 
-    exitCode  := cmd.Command("ip","link","add",wireguard.InterfaceName,"type","wireguard")
+    exitCode  := cmd.Command("ip","link","add",peer.DeviceName,"type","wireguard")
     cmd.ValidateCommand(exitCode)
 
-	exitCode  = cmd.Command("ip","address","add",peer.VPNIP+"/32","dev",wireguard.InterfaceName)
+	exitCode  = cmd.Command("ip","address","add",peer.VPNIP+"/32","dev",peer.DeviceName)
 	cmd.ValidateCommand(exitCode)
 
-	exitCode = cmd.Command("ip","link","set","mtu",strconv.Itoa(wireguard.InterfaceMTU),"up","dev",wireguard.InterfaceName)
+	exitCode = cmd.Command("ip","link","set","mtu",strconv.Itoa(wireguard.InterfaceMTU),"up","dev",peer.DeviceName)
 	cmd.ValidateCommand(exitCode)
 
-	exitCode  = cmd.Command("iptables","-A","FORWARD","-i",wireguard.InterfaceName ,"-j","ACCEPT")
+	exitCode  = cmd.Command("iptables","-A","FORWARD","-i",peer.DeviceName ,"-j","ACCEPT")
 	cmd.ValidateCommand(exitCode)
 
 	//create keys
@@ -66,50 +64,50 @@ func (wireguard *WireGuardNetworkService) InitializeNetworkDevice(peer *MeshLoca
 	if err != nil {
 		log.Fatal(err)
 	}
-	exitCode = cmd.Command("wg","set",wireguard.InterfaceName,"listen-port",strconv.Itoa(peer.ListenPort),"private-key",peer.PrivateKeyPath)
+	exitCode = cmd.Command("wg","set",peer.DeviceName,"listen-port",strconv.Itoa(peer.ListenPort),"private-key",peer.PrivateKeyPath)
 	cmd.ValidateCommand(exitCode)
 
-	exitCode = cmd.Command("ip","link","set",wireguard.InterfaceName,"up")
+	exitCode = cmd.Command("ip","link","set",peer.DeviceName,"up")
 	cmd.ValidateCommand(exitCode)
 
 	log.Println("---> This node ID:",publicKey)
 }
 
-func (wireguard *WireGuardNetworkService) LinkPeer(peer MeshRemotePeer) {
+func (wireguard *WireGuardNetworkService) LinkPeer(localPeer *MeshLocalPeer,peer MeshRemotePeer) {
 	log.Println("---->New Peer discovered " + peer.PublicKey)
 	allowedIPS:=strings.Join(peer.AllowedIPs,",")
-	exitCode  := cmd.Command("wg","set",wireguard.InterfaceName,"peer",peer.PublicKey,"persistent-keepalive",strconv.Itoa(peer.KeepAlive),"allowed-ips",allowedIPS,"endpoint", peer.PublicIP+":"+strconv.Itoa(peer.PublicPort))
+	exitCode  := cmd.Command("wg","set",localPeer.DeviceName,"peer",peer.PublicKey,"persistent-keepalive",strconv.Itoa(peer.KeepAlive),"allowed-ips",allowedIPS,"endpoint", peer.PublicIP+":"+strconv.Itoa(peer.PublicPort))
 	cmd.ValidateCommand(exitCode)
 	for _,subnet := range  peer.AllowedIPs {
-		cmd.Command("ip","route","del",subnet,"dev",wireguard.InterfaceName)
-		exitCode  = cmd.Command("ip","route","add",subnet,"dev",wireguard.InterfaceName)
+		cmd.Command("ip","route","del",subnet,"dev",localPeer.DeviceName)
+		exitCode  = cmd.Command("ip","route","add",subnet,"dev",localPeer.DeviceName)
 		cmd.ValidateCommand(exitCode)
 	}
 
 }
 
-func (wireguard *WireGuardNetworkService) UpdatePeer(peer MeshRemotePeer) {
+func (wireguard *WireGuardNetworkService) UpdatePeer(localPeer *MeshLocalPeer,peer MeshRemotePeer) {
 	log.Println("---->Peer Update " + peer.PublicKey)
-	wireguard.UnlinkPeer(peer)
-	wireguard.LinkPeer(peer)
+	wireguard.UnlinkPeer(localPeer,peer)
+	wireguard.LinkPeer(localPeer,peer)
 }
 
-func (wireguard *WireGuardNetworkService) UnlinkPeer(peer MeshRemotePeer) {
+func (wireguard *WireGuardNetworkService) UnlinkPeer(localPeer *MeshLocalPeer,peer MeshRemotePeer) {
 	log.Println("---->Unlink Peer " + peer.PublicKey)
-	exitCode  := cmd.Command("wg","set",wireguard.InterfaceName,"peer",peer.PublicKey,"remove")
+	exitCode  := cmd.Command("wg","set",localPeer.DeviceName,"peer",peer.PublicKey,"remove")
 	cmd.ValidateCommand(exitCode)
 
 	for _,subnet := range  peer.AllowedIPs {
-		cmd.Command("ip","route","del",subnet,"dev",wireguard.InterfaceName)
+		cmd.Command("ip","route","del",subnet,"dev",localPeer.DeviceName)
 	}
 }
 
 func (wireguard *WireGuardNetworkService) DestroyNetworkDevice(peer MeshLocalPeer) {
-	log.Println("---->Destroying wireguard device "+wireguard.InterfaceName)
-	exitCode  := cmd.Command("ip","link","delete","dev",wireguard.InterfaceName)
+	log.Println("---->Destroying wireguard device "+peer.DeviceName)
+	exitCode  := cmd.Command("ip","link","delete","dev",peer.DeviceName)
 	cmd.ValidateCommand(exitCode)
 
-	exitCode  = cmd.Command("iptables","-D","FORWARD","-i",wireguard.InterfaceName ,"-j","ACCEPT")
+	exitCode  = cmd.Command("iptables","-D","FORWARD","-i",peer.DeviceName ,"-j","ACCEPT")
 	cmd.ValidateCommand(exitCode)
 
 	defer os.Remove(peer.PrivateKeyPath)
