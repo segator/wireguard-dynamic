@@ -176,7 +176,7 @@ func monitorPeers(meshService *SimpleMeshService,remotePeerStore *RemotePeersSto
 		   }
 		   remotePeerStore.remotePeers = newPeerList
 	   }
-	   time.Sleep(10 * time.Second)
+	   time.Sleep(time.Duration(meshService.localPeer.KeepAlive) * time.Second)
    }
 }
 func monitorPublicIP(meshService *SimpleMeshService,remotePeerStore *RemotePeersStored){
@@ -207,7 +207,7 @@ func monitorPublicIP(meshService *SimpleMeshService,remotePeerStore *RemotePeers
 
 		//every time we modify this node update the version
 		//meshService.localPeer.version++
-		time.Sleep(15 * time.Second)
+		time.Sleep(time.Duration(meshService.localPeer.KeepAlive) * time.Second)
 	}
 }
 

@@ -87,7 +87,7 @@ func  (repository *KVDBRepository) Store(bucket string,peer MeshRemotePeer) erro
 		return err
 	}
 	publicKeyB64 := base64.StdEncoding.EncodeToString([]byte(peer.PublicKey))
-	url := repository.ServerURL.String()+"/"+bucket+"/"+publicKeyB64+"?ttl=30"
+	url := repository.ServerURL.String()+"/"+bucket+"/"+publicKeyB64+"?ttl=" + strconv.Itoa(peer.KeepAlive *2)
 	resp, err := http.Post(url,"application/json",bytes.NewReader(bytesJSON))
 	if err!=nil {
 		log.Fatal(err)
