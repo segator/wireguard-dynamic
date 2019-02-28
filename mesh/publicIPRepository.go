@@ -16,7 +16,7 @@ type publicIPRepoProviders struct{
 
 
 func NewPublicIPRepository() PublicIPRepository {
-	var providers = []string{"https://api.ipify.org/","http://ifconfig.io/ip","http://ipecho.net/plain","http://icanhazip.com","https://ifconfig.me/ip"}
+	var providers = []string{"https://api.ipify.org/","http://ifconfig.io/ip","http://ipecho.net/plain","http://icanhazip.com","https://ifconfig.me/ip","https://myexternalip.com/raw"}
 	return &publicIPRepoProviders{
 		providers: providers,
 
