@@ -41,7 +41,7 @@ docker run -d --restart=always \
            --name wireguard \
            --net=host \
            --privileged \
-           segator/wireguard-dynamic join --token $NETWORK_TOKEN --listen-port 31111
+           segator/wireguard-dynamic join --token $NETWORK_TOKEN --listen-port 31111 --public-port 31111
            
  #wait 5-10 seconds, then the nodes will be auto detected and interconected.
  #to get the ip of the node wireguard devices
