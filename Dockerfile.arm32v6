@@ -1,0 +1,21 @@
+FROM arm32v6/golang:1.11.5-alpine3.8 as builder
+RUN mkdir /app
+ADD . /app/
+WORKDIR /app/
+RUN apk add --no-cache gcc libc-dev && \
+    go build -o /app/wg-dynamic .
+
+FROM arm32v6/alpine
+COPY --from=builder /app/wg-dynamic /app/
+WORKDIR /app
+RUN apk add --no-cache \
+        ca-certificates \
+        libmnl iproute2 iptables
+
+RUN apk add wireguard-tools --no-cache --repository http://dl-cdn.alpinelinux.org/alpine/edge/testing
+
+
+ENTRYPOINT ["/app/wg-dynamic"]
+#CMD ["--help"]
+
+
