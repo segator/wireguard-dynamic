@@ -5,7 +5,7 @@ type Mesh struct {
 }
 
 type MeshRemotePeer struct {
-	version   int `json:"version"`
+	Version   int `json:"version"`
 	PublicIP  string `json:"public_ip"`
 	AllowedIPs []string `json:"allowed_ips"`
 	PublicPort int `json:"public_port"`

@@ -189,7 +189,7 @@ func monitorPublicIP(meshService *SimpleMeshService,remotePeerStore *RemotePeers
 			if(meshService.localPeer.PublicIP != newPublicIP){
 				log.Println("---->New IP Address: "+ newPublicIP)
 				meshService.localPeer.PublicIP =newPublicIP
-				meshService.localPeer.version++
+				meshService.localPeer.Version++
 			}
 		}
 		_,err :=retry.Do(func()  (interface{},*retry.RetryError){

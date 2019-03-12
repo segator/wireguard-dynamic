@@ -60,6 +60,7 @@ func main() {
 		mesh :=me.CreateMesh()
 		log.Println(mesh.MeshID)
 	}else if opts.join{
+		opts.meshPeer.Version=0
 		if opts.meshPeer.PublicIP == "auto" {
 			opts.meshPeer.AutoPublicIP=true
 			opts.meshPeer.PublicIP = ""
