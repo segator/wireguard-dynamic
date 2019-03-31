@@ -29,7 +29,9 @@ func NewSimpleMeshService(repository PeerRepository,network NetworkService) Mesh
 		ipPublic : NewPublicIPRepository(),
 	}
 }
-
+func (meshService *SimpleMeshService) GetLocalPeer() MeshLocalPeer {
+	return *meshService.localPeer
+}
 func (meshService *SimpleMeshService) Stop() {
 	meshService.shutdown=true
 	_,err :=retry.Do(func()  (interface{},*retry.RetryError){
@@ -44,9 +46,9 @@ func (meshService *SimpleMeshService) Stop() {
 	}
 
 	for _,peer := range meshService.peers.remotePeers{
-		meshService.network.UnlinkPeer(meshService.localPeer,*peer)
+		meshService.network.UnlinkPeer(meshService.localPeer,peer)
 	}
-	meshService.network.DestroyNetworkDevice(*meshService.localPeer)
+	meshService.network.DestroyNetworkDevice(meshService.localPeer)
 }
 
 func ( meshService *SimpleMeshService) CreateMesh() Mesh{
@@ -97,11 +99,11 @@ func  (meshService *SimpleMeshService) JoinMesh(mesh Mesh,localPeer MeshLocalPee
 	//initialize device
 	meshService.network.InitializeNetworkDevice(&localPeer)
 
-	go  monitorPeers(meshService,meshService.peers)
-	go monitorPublicIP(meshService,meshService.peers)
+	go monitorPeers(meshService)
+	go monitorPublicIP(meshService)
+
 
 }
-
 
 func calculatePublicIP(meshService  *SimpleMeshService) string {
 	publicIP,err :=retry.Do(func()  (interface{},*retry.RetryError){
@@ -116,7 +118,7 @@ func calculatePublicIP(meshService  *SimpleMeshService) string {
 	}
 	return publicIP.(string)
 }
-func monitorPeers(meshService *SimpleMeshService,remotePeerStore *RemotePeersStored){
+func monitorPeers(meshService *SimpleMeshService){
    for {
    	   if meshService.shutdown {
    	   	return
@@ -136,20 +138,20 @@ func monitorPeers(meshService *SimpleMeshService,remotePeerStore *RemotePeersSto
 	   	   //Find updates and deletes
 		   for _, remotePeer := range peers {
 		   		found := false
-		   	    for storeIndex , remotePeerBefore := range remotePeerStore.remotePeers {
+		   	    for storeIndex , remotePeerBefore := range meshService.peers.remotePeers {
 		   	    	if remotePeer.Compare(*remotePeerBefore) {
 						found=true
-						if remotePeer.version > remotePeerBefore.version {
-							remotePeerStore.remotePeers[storeIndex] = remotePeer
-							meshService.network.UpdatePeer(meshService.localPeer,*remotePeer)
+						if remotePeer.Version > remotePeerBefore.Version {
+							meshService.peers.remotePeers[storeIndex] = remotePeer
+							meshService.network.UpdatePeer(meshService.localPeer,remotePeerBefore,remotePeer)
 						}
 					}
 				}
 		   	    //Add new Peers
 		   	    if !found {
 					if meshService.localPeer.PublicKey != remotePeer.PublicKey {
-						meshService.network.LinkPeer(meshService.localPeer,*remotePeer)
-						remotePeerStore.remotePeers = append(remotePeerStore.remotePeers,remotePeer)
+						meshService.network.LinkPeer(meshService.localPeer,remotePeer)
+						meshService.peers.remotePeers = append(meshService.peers.remotePeers,remotePeer)
 					}
 				}
 		   }
@@ -157,7 +159,7 @@ func monitorPeers(meshService *SimpleMeshService,remotePeerStore *RemotePeersSto
 		   //Find
 		   toUnBind:= []*MeshRemotePeer{}
 		   newPeerList:= []*MeshRemotePeer{}
-		   for _ , remotePeerBefore := range remotePeerStore.remotePeers {
+		   for _ , remotePeerBefore := range meshService.peers.remotePeers {
 		   	   found :=false
 			   for _, remotePeer := range peers {
 				   if remotePeer.Compare(*remotePeerBefore) {
@@ -172,14 +174,14 @@ func monitorPeers(meshService *SimpleMeshService,remotePeerStore *RemotePeersSto
 			   }
 		   }
 		   for _, unlinkPeer := range toUnBind {
-			   meshService.network.UnlinkPeer(meshService.localPeer,*unlinkPeer)
+			   meshService.network.UnlinkPeer(meshService.localPeer,unlinkPeer)
 		   }
-		   remotePeerStore.remotePeers = newPeerList
+		   meshService.peers.remotePeers = newPeerList
 	   }
 	   time.Sleep(time.Duration(meshService.localPeer.KeepAlive) * time.Second)
    }
 }
-func monitorPublicIP(meshService *SimpleMeshService,remotePeerStore *RemotePeersStored){
+func monitorPublicIP(meshService *SimpleMeshService){
 	for {
 		if meshService.shutdown {
 			return

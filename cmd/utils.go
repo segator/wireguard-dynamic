@@ -9,7 +9,11 @@ import (
 	"strconv"
 	"strings"
 	"syscall"
+	"time"
 )
+func isDebug() bool {
+	return false
+}
 
 func ValidateCommand(exitCode int){
   if exitCode >0 {
@@ -17,28 +21,33 @@ func ValidateCommand(exitCode int){
   }
 }
 func Command(name string, arg...string) int{
-	cmd := exec.Command(name, arg...)
-	var waitStatus syscall.WaitStatus
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	log.Println("Exec: "+ strings.Join(cmd.Args," "))
-	if err :=cmd.Run(); err!=nil {
-		if exitError, ok := err.(*exec.ExitError); ok {
-			waitStatus = exitError.Sys().(syscall.WaitStatus)
-			return waitStatus.ExitStatus()
-		}else if execError, ok := err.(*exec.Error); ok{
-			log.Println(execError.Error())
-			return 999
-		}else{
-			log.Panic("Process error not controlled")
-			return 998
-		}
+	if isDebug() {
+		log.Println(name,arg)
+		return 0
 	}else{
-		waitStatus = cmd.ProcessState.Sys().(syscall.WaitStatus)
-		return waitStatus.ExitStatus()
+		cmd := exec.Command(name, arg...)
+		var waitStatus syscall.WaitStatus
+		cmd.Stdout = os.Stdout
+		cmd.Stderr = os.Stderr
+		log.Println("Exec: "+ strings.Join(cmd.Args," "))
+		if err :=cmd.Run(); err!=nil {
+			if exitError, ok := err.(*exec.ExitError); ok {
+				waitStatus = exitError.Sys().(syscall.WaitStatus)
+				return waitStatus.ExitStatus()
+			}else if execError, ok := err.(*exec.Error); ok{
+				log.Println(execError.Error())
+				return 999
+			}else{
+				log.Panic("Process error not controlled")
+				return 998
+			}
+		}else{
+			waitStatus = cmd.ProcessState.Sys().(syscall.WaitStatus)
+			return waitStatus.ExitStatus()
+		}
+		log.Panic("Process error not controlled2")
+		return 997
 	}
-	log.Panic("Process error not controlled2")
-	return 997
 }
 
 
@@ -48,42 +57,46 @@ func CommandCaptureOutput(name string, arg...string) (string,error){
 }
 
 func CommandCaptureOutputStdin(stdin string, name string, arg...string) (string, error) {
-	cmd := exec.Command(name, arg...)
-	log.Println("Exec: "+ strings.Join(cmd.Args," "))
-	var waitStatus syscall.WaitStatus
-	cmd.Stderr = os.Stderr
-	if stdin != "" {
-		stdinpipe,err := cmd.StdinPipe()
-		io.WriteString(stdinpipe, stdin)
-		stdinpipe.Close()
-		if err != nil {
-			return "", err
-		}
-	}
-
-	outputBytes,err := cmd.Output()
-	if err!=nil {
-		if exitError, ok := err.(*exec.ExitError); ok {
-			waitStatus = exitError.Sys().(syscall.WaitStatus)
-			if waitStatus.ExitStatus()!=0 {
-				return "",errors.New("invalid exit code:" + strconv.Itoa(waitStatus.ExitStatus()))
+	if isDebug() {
+		log.Println(name,arg)
+		return strconv.FormatInt(time.Now().UnixNano(),10),nil
+	}else {
+		cmd := exec.Command(name, arg...)
+		log.Println("Exec: " + strings.Join(cmd.Args, " "))
+		var waitStatus syscall.WaitStatus
+		cmd.Stderr = os.Stderr
+		if stdin != "" {
+			stdinpipe, err := cmd.StdinPipe()
+			io.WriteString(stdinpipe, stdin)
+			stdinpipe.Close()
+			if err != nil {
+				return "", err
 			}
+		}
 
-		}else if execError, ok := err.(*exec.Error); ok{
-			return "",execError
-		}else{
-			log.Panic("Process error not controlled")
-			return "",errors.New("Unknow process error")
+		outputBytes, err := cmd.Output()
+		if err != nil {
+			if exitError, ok := err.(*exec.ExitError); ok {
+				waitStatus = exitError.Sys().(syscall.WaitStatus)
+				if waitStatus.ExitStatus() != 0 {
+					return "", errors.New("invalid exit code:" + strconv.Itoa(waitStatus.ExitStatus()))
+				}
+
+			} else if execError, ok := err.(*exec.Error); ok {
+				return "", execError
+			} else {
+				log.Panic("Process error not controlled")
+				return "", errors.New("Unknow process error")
+			}
+		} else {
+			waitStatus = cmd.ProcessState.Sys().(syscall.WaitStatus)
+			if waitStatus.ExitStatus() != 0 {
+				return "", errors.New("invalid exit code:" + strconv.Itoa(waitStatus.ExitStatus()))
+			}
 		}
-	}else{
-		waitStatus = cmd.ProcessState.Sys().(syscall.WaitStatus)
-		if waitStatus.ExitStatus()!=0{
-			return "",errors.New("invalid exit code:" + strconv.Itoa(waitStatus.ExitStatus()))
-		}
+
+		return strings.TrimSpace(string(outputBytes)), nil
 	}
-
-	return strings.TrimSpace(string(outputBytes)),nil
-	//return strconv.FormatInt(time.Now().UnixNano(),10),nil
 }
 
 

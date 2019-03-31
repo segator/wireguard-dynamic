@@ -12,6 +12,13 @@ type MeshRemotePeer struct {
 	VPNIP string `json:"vpn_ip"`
 	PublicKey string  `json:"public_key"`
 	KeepAlive int `json:"keepalive"`
+	ListenPort int `json:"listen_port"`
+	PrivateIPs []string `json:"private_ips"`
+	ApiListenPort int `json:"api_listen_port"`
+
+	HostGWMode bool
+	HostGWIp string
+
 }
 
 type MeshLocalPeer struct {
@@ -19,10 +26,14 @@ type MeshLocalPeer struct {
 	AutoPublicIP bool
 	AutoVPNIP bool
 	DeviceName string
-	ListenPort int `json:"listen_port"`
 	PrivateKey string  `json:"private_key"`
 	PrivateKeyPath string  `json:"private_key_path"`
 }
+
+type APILocalPeerStatus struct {
+	PublicKey string  `json:"public_key"`
+}
+
 
 type RemotePeersStored struct {
 	remotePeers []*MeshRemotePeer
@@ -31,6 +42,7 @@ type RemotePeersStored struct {
 func (a MeshRemotePeer) Compare(b MeshRemotePeer) bool{
 	return a.PublicKey == b.PublicKey
 }
+
 
 
 
