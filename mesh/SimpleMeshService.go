@@ -135,7 +135,29 @@ func monitorPeers(meshService *SimpleMeshService){
 	   }
 	   peers := peersInterface.([]*MeshRemotePeer)
 	   if err==nil {
-	   	   //Find updates and deletes
+		   //Find Deletes
+		   toUnBind:= []*MeshRemotePeer{}
+		   newPeerList:= []*MeshRemotePeer{}
+		   for _ , remotePeerBefore := range meshService.peers.remotePeers {
+			   found :=false
+			   for _, remotePeer := range peers {
+				   if remotePeer.Compare(*remotePeerBefore) {
+					   found  = true
+				   }
+			   }
+			   if !found {
+				   toUnBind = append(toUnBind,remotePeerBefore)
+			   }else{
+				   newPeerList = append(newPeerList,remotePeerBefore)
+			   }
+		   }
+		   for _, unlinkPeer := range toUnBind {
+			   meshService.network.UnlinkPeer(meshService.localPeer,unlinkPeer)
+		   }
+		   meshService.peers.remotePeers = newPeerList
+
+
+	   	   //Find updates and Inserts
 		   for _, remotePeer := range peers {
 		   		found := false
 		   	    for storeIndex , remotePeerBefore := range meshService.peers.remotePeers {
@@ -156,27 +178,7 @@ func monitorPeers(meshService *SimpleMeshService){
 				}
 		   }
 
-		   //Find
-		   toUnBind:= []*MeshRemotePeer{}
-		   newPeerList:= []*MeshRemotePeer{}
-		   for _ , remotePeerBefore := range meshService.peers.remotePeers {
-		   	   found :=false
-			   for _, remotePeer := range peers {
-				   if remotePeer.Compare(*remotePeerBefore) {
-				   	found  = true
-				   }
-			   }
-			   // remotePeerBefore.PublicKey!=meshService.localPeer.PublicKey
-			   if !found {
-				   toUnBind = append(toUnBind,remotePeerBefore)
-			   }else{
-				   newPeerList = append(newPeerList,remotePeerBefore)
-			   }
-		   }
-		   for _, unlinkPeer := range toUnBind {
-			   meshService.network.UnlinkPeer(meshService.localPeer,unlinkPeer)
-		   }
-		   meshService.peers.remotePeers = newPeerList
+
 	   }
 	   time.Sleep(time.Duration(meshService.localPeer.KeepAlive) * time.Second)
    }
