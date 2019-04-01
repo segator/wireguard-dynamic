@@ -44,7 +44,7 @@ func (hostgw *HostGatewayNetworkService) LinkPeer(localPeer *MeshLocalPeer,peer 
 					log.Println("Invalid JSON decode",bodyBytes)
 				}else{
 					if restApiStatus.PublicKey == peer.PublicKey {
-						exitCode := cmd.Command("ip","route","add",peer.AllowedIPs[0],"via",peer.HostGWIp)
+						exitCode := cmd.Command("ip","route","add",peer.AllowedIPs[0],"via",privateIP)
 						if exitCode == 0 {
 							cmd.Command("ip","route","del",peer.AllowedIPs[0])
 							peer.HostGWMode=true
