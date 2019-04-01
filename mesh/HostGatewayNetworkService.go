@@ -30,19 +30,23 @@ func (hostgw *HostGatewayNetworkService) LinkPeer(localPeer *MeshLocalPeer,peer 
 	//Check every private IP if accesible to wg-dynamic rest api
 	peer.HostGWMode=false
 	peer.HostGWIp=""
-	for _ , privateIP := range peer.PrivateIPs {
-		if hostgw.checkStatus(privateIP,peer,1) {
-			exitCode := cmd.Command("ip","route","add",peer.AllowedIPs[0],"via",privateIP)
-			if exitCode == 0 {
-				cmd.Command("ip","route","del",peer.AllowedIPs[0])
-				peer.HostGWMode=true
-				peer.HostGWIp = privateIP
+		if len(localPeer.PrivateIPs) > 0 && localPeer.PrivateIPs[0] != "none" {
+		for _ , privateIP := range peer.PrivateIPs {
+			if privateIP == "none" {
 				break
 			}
+			if hostgw.checkStatus(privateIP,peer,1) {
+				exitCode := cmd.Command("ip","route","add",peer.AllowedIPs[0],"via",privateIP)
+				if exitCode == 0 {
+					cmd.Command("ip","route","del",peer.AllowedIPs[0])
+					peer.HostGWMode=true
+					peer.HostGWIp = privateIP
+					break
+				}
 
+			}
 		}
 	}
-
 
 	if peer.HostGWMode {
 		log.Println("---->New Peer (Host-GW) discovered " + peer.PublicKey)

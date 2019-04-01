@@ -41,7 +41,8 @@ func main() {
 		joinCmd.IntVar(&opts.meshPeer.ApiListenPort, "api-listen-port", 23103, "Listen Port for REST API Service")
 		joinCmd.IntVar(&opts.meshPeer.PublicPort, "public-port", 31111, "Public listen Port for the VPN Service, if connection through NAT can be diferent than listen port")
 		joinCmd.StringVar(&opts.meshPeer.PublicIP, "public-ip", "auto", "Public IP used by other nodes to connect to this node, by default is auto calculated")
-		joinCmd.StringVar(&privateIps, "private-ip", "auto", "Private IP used by other nodes on the same LAN to connect to this node directly without tunneling through wireguard, by default will use all Ip's on internal net device")
+		joinCmd.StringVar(&privateIps, "private-ip", "auto", "Private IP used by other nodes on the same LAN to connect to this node directly without tunneling through wireguard, you can also define ranges so we will search for privateIps that match this range(Example: 192.168.0.0/16), by default will use all Ip's on internal net device,if you don't want this node be reached by internal network set 'none'")
+
 		joinCmd.StringVar(&opts.meshPeer.VPNIP, "vpn-ip", "auto", "IP of the internal VPN this node will have, only /32 allowed")
 		joinCmd.StringVar(&subnets, "accept-networks", "", "network list splited with ,(coma) so other Nodes will know how to achieve those subnets through this node")
 		//joinCmd.StringVar(&subnets, "accept-networks-routing", "NONE", "how other nodes will route to accepted networks of this node(MASQUERADE, NONE, FORWARD)")
@@ -73,20 +74,35 @@ func main() {
 			opts.meshPeer.PublicIP = ""
 		}
 		if privateIps == "auto" {
-			addrs, err := net.InterfaceAddrs()
-			if err != nil {
-				log.Panic("Oops:"+err.Error())
-			}
+			opts.meshPeer.PrivateIPs = findAllPrivateIps()
+		}else if privateIps == "none" {
+			opts.meshPeer.PrivateIPs = []string{"none"}
+		}else{
+			allPrivateIPs:=findAllPrivateIps()
 			opts.meshPeer.PrivateIPs = []string{}
-			for _, a := range addrs {
-				if ipnet, ok := a.(*net.IPNet); ok && !ipnet.IP.IsLoopback() {
-					if ipnet.IP.To4() != nil {
-						opts.meshPeer.PrivateIPs = append(opts.meshPeer.PrivateIPs,ipnet.IP.String())
+			privateIpsArray :=strings.Split(privateIps,",")
+			for _, privateIP := range privateIpsArray {
+				ip, subnet,err :=net.ParseCIDR(privateIP)
+				if err != nil {
+					opts.meshPeer.PrivateIPs = append(opts.meshPeer.PrivateIPs,privateIP)
+				}else{
+					log.Println(ip.String() + " " + subnet.String())
+					for _, privateLocalIP := range allPrivateIPs {
+						if subnet.Contains(net.ParseIP(privateLocalIP)) {
+							addIP:=true
+							for _, alreadyAddedIP := range opts.meshPeer.PrivateIPs {
+								if alreadyAddedIP == privateLocalIP {
+									addIP=false
+									break
+								}
+							}
+							if addIP{
+								opts.meshPeer.PrivateIPs = append(opts.meshPeer.PrivateIPs,privateLocalIP)
+							}
+						}
 					}
 				}
 			}
-		}else{
-			opts.meshPeer.PrivateIPs = []string{privateIps}
 		}
 
 		if opts.meshPeer.VPNIP == "auto" {
@@ -104,4 +120,21 @@ func main() {
 	}
 
 	os.Exit(0)
+}
+
+func findAllPrivateIps() []string {
+	foundIPS :=  []string{}
+	addrs, err := net.InterfaceAddrs()
+	if err != nil {
+		log.Panic("Oops:"+err.Error())
+	}
+
+	for _, a := range addrs {
+		if ipnet, ok := a.(*net.IPNet); ok && !ipnet.IP.IsLoopback() {
+			if ipnet.IP.To4() != nil {
+				foundIPS = append(foundIPS,ipnet.IP.String())
+			}
+		}
+	}
+	return foundIPS
 }
