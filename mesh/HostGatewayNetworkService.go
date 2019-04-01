@@ -31,36 +31,19 @@ func (hostgw *HostGatewayNetworkService) LinkPeer(localPeer *MeshLocalPeer,peer 
 	peer.HostGWMode=false
 	peer.HostGWIp=""
 	for _ , privateIP := range peer.PrivateIPs {
-		if privateIP == peer.PublicIP {
-			//If public and private IP is the same most probably this node is a cloud server so try always over wireguard
-			break
-		}
-		restAPIURL := "http://" + privateIP + ":" + strconv.Itoa(peer.ApiListenPort) + "/status"
-		timeout := time.Duration(1 * time.Second)
-		client := http.Client{Timeout: timeout}
-		resp, err:= client.Get(restAPIURL)
-		if err==nil {
-			defer resp.Body.Close()
-			if resp.StatusCode == http.StatusOK {
-				bodyBytes, _ := ioutil.ReadAll(resp.Body)
-				var restApiStatus APILocalPeerStatus
-				if err :=json.Unmarshal(bodyBytes, &restApiStatus ); err != nil {
-					log.Println("Invalid JSON decode",bodyBytes)
-				}else{
-					if restApiStatus.PublicKey == peer.PublicKey {
-						exitCode := cmd.Command("ip","route","add",peer.AllowedIPs[0],"via",privateIP)
-						if exitCode == 0 {
-							cmd.Command("ip","route","del",peer.AllowedIPs[0])
-							peer.HostGWMode=true
-							peer.HostGWIp = privateIP
-							break
-						}
-
-					}
-				}
+		if hostgw.checkStatus(privateIP,peer,1) {
+			exitCode := cmd.Command("ip","route","add",peer.AllowedIPs[0],"via",privateIP)
+			if exitCode == 0 {
+				cmd.Command("ip","route","del",peer.AllowedIPs[0])
+				peer.HostGWMode=true
+				peer.HostGWIp = privateIP
+				break
 			}
+
 		}
 	}
+
+
 	if peer.HostGWMode {
 		log.Println("---->New Peer (Host-GW) discovered " + peer.PublicKey)
 		for _,subnet := range  peer.AllowedIPs {
@@ -72,6 +55,29 @@ func (hostgw *HostGatewayNetworkService) LinkPeer(localPeer *MeshLocalPeer,peer 
 		hostgw.backendNetworkService.LinkPeer(localPeer,peer)
 	}
 	}
+
+func (hostgw *HostGatewayNetworkService) checkStatus(ip string,peer *MeshRemotePeer,timeoutSeconds time.Duration) bool {
+	result := false
+	restAPIURL := "http://" + ip + ":" + strconv.Itoa(peer.ApiListenPort) + "/status"
+	timeout := time.Duration(timeoutSeconds * time.Second)
+	client := http.Client{Timeout: timeout}
+	resp, err:= client.Get(restAPIURL)
+	if err==nil {
+		defer resp.Body.Close()
+		if resp.StatusCode == http.StatusOK {
+			bodyBytes, _ := ioutil.ReadAll(resp.Body)
+			var restApiStatus APILocalPeerStatus
+			if err := json.Unmarshal(bodyBytes, &restApiStatus); err != nil {
+				log.Println("Invalid JSON decode", bodyBytes)
+			} else {
+				if restApiStatus.PublicKey == peer.PublicKey {
+					result = true
+				}
+			}
+		}
+	}
+	return result
+}
 
 func (hostgw *HostGatewayNetworkService) UpdatePeer(localPeer *MeshLocalPeer,beforeUpdatePeer *MeshRemotePeer,afterUpdatePeer *MeshRemotePeer) {
 	if beforeUpdatePeer.HostGWMode {
