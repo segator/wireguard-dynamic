@@ -79,7 +79,7 @@ func (wireguard *WireGuardNetworkService) LinkPeer(localPeer *MeshLocalPeer,peer
 	exitCode  := cmd.Command("wg","set",localPeer.DeviceName,"peer",peer.PublicKey,"persistent-keepalive",strconv.Itoa(peer.KeepAlive),"allowed-ips",allowedIPS,"endpoint", peer.PublicIP+":"+strconv.Itoa(peer.PublicPort))
 	cmd.ValidateCommand(exitCode)
 	for _,subnet := range  peer.AllowedIPs {
-		cmd.Command("ip","route","del",subnet,"dev",localPeer.DeviceName)
+		cmd.Command("ip","route","del",subnet)
 		exitCode  = cmd.Command("ip","route","add",subnet,"dev",localPeer.DeviceName)
 		cmd.ValidateCommand(exitCode)
 	}
@@ -98,7 +98,7 @@ func (wireguard *WireGuardNetworkService) UnlinkPeer(localPeer *MeshLocalPeer,pe
 	cmd.ValidateCommand(exitCode)
 
 	for _,subnet := range  peer.AllowedIPs {
-		cmd.Command("ip","route","del",subnet,"dev",localPeer.DeviceName)
+		cmd.Command("ip","route","del",subnet)
 	}
 }
 

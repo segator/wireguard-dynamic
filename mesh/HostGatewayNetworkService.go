@@ -31,6 +31,10 @@ func (hostgw *HostGatewayNetworkService) LinkPeer(localPeer *MeshLocalPeer,peer 
 	peer.HostGWMode=false
 	peer.HostGWIp=""
 	for _ , privateIP := range peer.PrivateIPs {
+		if privateIP == peer.PublicIP {
+			//If public and private IP is the same most probably this node is a cloud server so try always over wireguard
+			continue
+		}
 		restAPIURL := "http://" + privateIP + ":" + strconv.Itoa(peer.ApiListenPort) + "/status"
 		timeout := time.Duration(1 * time.Second)
 		client := http.Client{Timeout: timeout}
