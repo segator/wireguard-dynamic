@@ -82,7 +82,7 @@ func main() {
 			opts.meshPeer.PrivateIPs = []string{}
 			privateIpsArray :=strings.Split(privateIps,",")
 			for _, privateIP := range privateIpsArray {
-				ip, subnet,err :=net.ParseCIDR(privateIP)
+				_, subnet,err :=net.ParseCIDR(privateIP)
 				if err != nil {
 					opts.meshPeer.PrivateIPs = append(opts.meshPeer.PrivateIPs,privateIP)
 				}else{
