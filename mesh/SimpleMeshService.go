@@ -63,9 +63,6 @@ func ( meshService *SimpleMeshService) CreateMesh() Mesh{
 		log.Panic(err)
 	}
 
-	if err!=nil {
-		log.Panic(err)
-	}
 	return Mesh{
 		MeshID: bucketID.(string),
 	}

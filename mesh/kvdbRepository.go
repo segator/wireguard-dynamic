@@ -51,7 +51,7 @@ func (repository *KVDBRepository) CreateBucket() (string,error) {
 func (repository *KVDBRepository) FindAll(bucket string) ([]*MeshRemotePeer,error) {
 	resp, err:= http.Get(repository.ServerURL.String()+"/"+bucket+"/?format=json&values=true")
 	if err!=nil {
-		log.Fatal(err)
+		return nil,err
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode == http.StatusOK {
@@ -90,7 +90,7 @@ func  (repository *KVDBRepository) Store(bucket string,peer MeshRemotePeer) erro
 	url := repository.ServerURL.String()+"/"+bucket+"/"+publicKeyB64+"?ttl=" + strconv.Itoa(peer.KeepAlive *2)
 	resp, err := http.Post(url,"application/json",bytes.NewReader(bytesJSON))
 	if err!=nil {
-		log.Fatal(err)
+		return err
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode != http.StatusCreated && resp.StatusCode != http.StatusOK {

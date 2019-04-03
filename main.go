@@ -86,7 +86,6 @@ func main() {
 				if err != nil {
 					opts.meshPeer.PrivateIPs = append(opts.meshPeer.PrivateIPs,privateIP)
 				}else{
-					log.Println(ip.String() + " " + subnet.String())
 					for _, privateLocalIP := range allPrivateIPs {
 						if subnet.Contains(net.ParseIP(privateLocalIP)) {
 							addIP:=true
