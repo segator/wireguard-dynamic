@@ -36,16 +36,23 @@ func (repoProvider publicIPRepoProviders) getPublicIP() (string, error) {
 		publicIP := strings.TrimSpace(string(bodyBytes))
 		ipParsed :=  net.ParseIP(publicIP)
 		if ipParsed ==nil {
-			return "",&errorString{
+			return "",&errorStringPublicIP{
 				s: "Invalid IP " + publicIP,
 			}
 		}
 
 		return publicIP,nil
 	}else{
-		return "",&errorString{
+		return "",&errorStringPublicIP{
 			s: "Invalid response "+  strconv.Itoa(resp.StatusCode),
 		}
 	}
 }
 
+type errorStringPublicIP struct {
+	s string
+}
+
+func (e *errorStringPublicIP) Error() string {
+	return e.s
+}

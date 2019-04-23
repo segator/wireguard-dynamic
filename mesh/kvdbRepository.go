@@ -39,7 +39,7 @@ func (repository *KVDBRepository) CreateBucket() (string,error) {
 		response = string(bodyBytes)
 		return response,nil
 	}else{
-		return  "",&errorString{
+		return  "",&errorStringKVDB{
 			s: "invalid status code",
 		}
 	}
@@ -58,7 +58,7 @@ func (repository *KVDBRepository) FindAll(bucket string) ([]*MeshRemotePeer,erro
 		bodyBytes, _ := ioutil.ReadAll(resp.Body)
 		var elements [][]string
 		if err :=json.Unmarshal(bodyBytes, &elements ); err != nil {
-			return nil,&errorString{
+			return nil,&errorStringKVDB{
 				s: "invalid JSON decode",
 			}
 		}
@@ -67,7 +67,7 @@ func (repository *KVDBRepository) FindAll(bucket string) ([]*MeshRemotePeer,erro
 		for _ , element := range elements {
 			var peer MeshRemotePeer
 			if err=json.Unmarshal([]byte(element[1]),&peer); err!= nil {
-				return nil,&errorString{
+				return nil,&errorStringKVDB{
 					s: "invalid JSON decode",
 				}
 			}
@@ -75,7 +75,7 @@ func (repository *KVDBRepository) FindAll(bucket string) ([]*MeshRemotePeer,erro
 		}
 		return peersList, nil
 	}else{
-		return  nil,&errorString{
+		return  nil,&errorStringKVDB{
 			s: "invalid status code",
 		}
 	}
@@ -95,7 +95,7 @@ func  (repository *KVDBRepository) Store(bucket string,peer MeshRemotePeer) erro
 	defer resp.Body.Close()
 	if resp.StatusCode != http.StatusCreated && resp.StatusCode != http.StatusOK {
 		log.Print(url)
-		return  &errorString{
+		return  &errorStringKVDB{
 			s: "invalid status code: "+strconv.Itoa(resp.StatusCode),
 		}
 	}
@@ -120,7 +120,7 @@ func (repository *KVDBRepository) Delete(bucket string, peer *MeshLocalPeer) err
 	if resp.StatusCode == http.StatusAccepted {
 		return nil
 	}else{
-		return  &errorString{
+		return  &errorStringKVDB{
 			s: "invalid status code "+resp.Status,
 		}
 	}
@@ -128,10 +128,10 @@ func (repository *KVDBRepository) Delete(bucket string, peer *MeshLocalPeer) err
 func  (repository *KVDBRepository) Update(bucket string,peer MeshRemotePeer) error{
 	return repository.Store(bucket,peer)
 }
-type errorString struct {
+type errorStringKVDB struct {
 	s string
 }
 
-func (e *errorString) Error() string {
+func (e *errorStringKVDB) Error() string {
 	return e.s
 }

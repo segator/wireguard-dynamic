@@ -15,6 +15,11 @@ import (
 type cmdLineOpts struct {
 	init bool
 	join bool
+	kvType string
+	kvUser string
+	kvPass string
+	kvToken string
+	kvAddrs string
 	mesh mesh.Mesh
 	meshPeer mesh.MeshLocalPeer
 }
@@ -30,8 +35,10 @@ func main() {
 	signal.Notify(chanOSSignal, os.Interrupt, syscall.SIGTERM)
 	subnets := ""
 	privateIps := ""
+	flag.Parse()
 	switch os.Args[1] {
 	case "init":
+		commonParameters(initCmd)
 		initCmd.Parse(os.Args[2:])
 		opts.init=true
 	case "join":
@@ -49,6 +56,7 @@ func main() {
 
 		joinCmd.IntVar(&opts.meshPeer.KeepAlive, "keep-alive", 15, "Keep Alive in seconds")
 		joinCmd.StringVar(&opts.meshPeer.DeviceName, "device-name", "wg0", "Device name, by default wg0")
+		commonParameters(joinCmd)
 		joinCmd.Parse(os.Args[2:])
 	default:
 		fmt.Fprintf(os.Stderr, "wireguard-dynamic init #this create new mesh token\nwireguard-dynamic join #this join this node to a existing mesh")
@@ -56,7 +64,15 @@ func main() {
 	}
 
 	//Get Repo Type
-	storeRepository := mesh.NewKVDBRepository()
+	storeRepository :=mesh.NewKVDBRepository()
+	if opts.kvType != "kvdb.io" {
+		KVAddrsArray :=strings.Split(opts.kvAddrs,",")
+		valkeyrieConfig := &mesh.ValkeyrieConfig{
+			Token:opts.kvToken,
+		}
+		storeRepository = mesh.NewKValkeyrieRepository(mesh.ValkeyrieKVType(opts.kvType),KVAddrsArray,valkeyrieConfig)
+	}
+
 	//Get VPN Type( Chaining Wireguard type + host Gateway)
 	networkService :=  mesh.NewHostGatewayNetworkService(mesh.NewWireGuardNetworkService())
 
@@ -66,7 +82,7 @@ func main() {
 	restApiService := mesh.NewRestAPIService(opts.meshPeer.ApiListenPort,me)
 	if opts.init {
 		mesh :=me.CreateMesh()
-		log.Println(mesh.MeshID)
+		fmt.Print(mesh.MeshID)
 	}else if opts.join{
 		opts.meshPeer.Version=0
 		if opts.meshPeer.PublicIP == "auto" {
@@ -119,6 +135,14 @@ func main() {
 	}
 
 	os.Exit(0)
+}
+
+func commonParameters(flagSet *flag.FlagSet) {
+	flagSet.StringVar(&opts.kvType,"kv-type","kvdb.io","Select a key-value service to use as a configuration provider")
+	flagSet.StringVar(&opts.kvUser,"kv-username","","authentication username for selected KeyValue Type")
+	flagSet.StringVar(&opts.kvPassword,"kv-username","","authentication password for selected KeyValue Type")
+	flagSet.StringVar(&opts.kvToken,"kv-token","","KV Auth Token")
+	flagSet.StringVar(&opts.kvAddrs,"kv-addr","localhost","KV Server Address separated with coma, example  15.1.1.1,16.3.2.1,41.1.4.11")
 }
 
 func findAllPrivateIps() []string {
