@@ -17,7 +17,7 @@ type cmdLineOpts struct {
 	join bool
 	kvType string
 	kvUser string
-	kvPass string
+	kvPassword string
 	kvToken string
 	kvAddrs string
 	mesh mesh.Mesh
