@@ -140,7 +140,7 @@ func main() {
 func commonParameters(flagSet *flag.FlagSet) {
 	flagSet.StringVar(&opts.kvType,"kv-type","kvdb.io","Select a key-value service to use as a configuration provider")
 	flagSet.StringVar(&opts.kvUser,"kv-username","","authentication username for selected KeyValue Type")
-	flagSet.StringVar(&opts.kvPassword,"kv-username","","authentication password for selected KeyValue Type")
+	flagSet.StringVar(&opts.kvPassword,"kv-password","","authentication password for selected KeyValue Type")
 	flagSet.StringVar(&opts.kvToken,"kv-token","","KV Auth Token")
 	flagSet.StringVar(&opts.kvAddrs,"kv-addr","localhost","KV Server Address separated with coma, example  15.1.1.1,16.3.2.1,41.1.4.11")
 }
