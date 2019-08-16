@@ -182,7 +182,7 @@ func monitorPeers(meshService *SimpleMeshService){
    }
 }
 func monitorPublicIP(meshService *SimpleMeshService){
-	i:=1
+	//i:=1
 	for {
 		if meshService.shutdown {
 			return
