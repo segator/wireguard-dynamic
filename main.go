@@ -10,6 +10,7 @@ import (
 	"os/signal"
 	"strings"
 	"syscall"
+	"time"
 )
 
 type cmdLineOpts struct {
@@ -69,6 +70,8 @@ func main() {
 		KVAddrsArray :=strings.Split(opts.kvAddrs,",")
 		valkeyrieConfig := &mesh.ValkeyrieConfig{
 			Token:opts.kvToken,
+			ConnectionTimeout:time.Duration(5 * time.Second),
+
 		}
 		storeRepository = mesh.NewKValkeyrieRepository(mesh.ValkeyrieKVType(opts.kvType),KVAddrsArray,valkeyrieConfig)
 	}

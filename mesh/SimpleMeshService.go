@@ -123,6 +123,7 @@ func monitorPeers(meshService *SimpleMeshService){
 	   peersInterface,err :=retry.Do(func()  (interface{},*retry.RetryError){
 		   peersStored,err := meshService.repository.FindAll(meshService.mesh.MeshID)
 		   if err!=nil {
+		   	   log.Println("error getting nodes",err)
 			   return nil,&retry.RetryError{true,err	}
 		   }
 		   return peersStored,nil
@@ -181,14 +182,19 @@ func monitorPeers(meshService *SimpleMeshService){
    }
 }
 func monitorPublicIP(meshService *SimpleMeshService){
+	i:=1
 	for {
 		if meshService.shutdown {
 			return
 		}
 		if meshService.localPeer.AutoPublicIP {
 			newPublicIP := calculatePublicIP(meshService)
+			/*if(i%2==0){
+				newPublicIP="24.1.4.1"
+			}
+			i=i+1;*/
 			if(meshService.localPeer.PublicIP != newPublicIP){
-				log.Println("---->New IP Address: "+ newPublicIP)
+				log.Println("Detect new Public IP("+ newPublicIP + ") Updating nodes configuration...")
 				meshService.localPeer.PublicIP =newPublicIP
 				meshService.localPeer.Version++
 			}
@@ -196,6 +202,7 @@ func monitorPublicIP(meshService *SimpleMeshService){
 		_,err :=retry.Do(func()  (interface{},*retry.RetryError){
 			err := meshService.repository.Store(meshService.mesh.MeshID,meshService.localPeer.MeshRemotePeer)
 			if err!=nil {
+				log.Println("Error executing store",err)
 				return nil,&retry.RetryError{true,err	}
 			}
 			return nil,nil

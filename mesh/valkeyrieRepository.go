@@ -90,7 +90,7 @@ func  (repository *ValkeyrieRepository) Store(bucket string,peer MeshRemotePeer)
 		return err
 	}
 	publicKeyB64 := base64.StdEncoding.EncodeToString([]byte(peer.PublicKey))
-	err = repository.store.Put(bucket+"/"+publicKeyB64,bytesJSON,&store.WriteOptions{TTL:time.Duration(peer.KeepAlive *2)*time.Second})
+	err = repository.store.Put(bucket+"/"+publicKeyB64,bytesJSON,&store.WriteOptions{TTL:time.Duration(peer.KeepAlive * 3)*time.Second})
 	if err!=nil {
 		return err
 	}

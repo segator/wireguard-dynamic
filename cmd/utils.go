@@ -9,10 +9,12 @@ import (
 	"strconv"
 	"strings"
 	"syscall"
-	"time"
 )
 func isDebug() bool {
 	return false
+}
+func isTrace() bool {
+	return true
 }
 
 func ValidateCommand(exitCode int){
@@ -29,13 +31,17 @@ func Command(name string, arg...string) int{
 		var waitStatus syscall.WaitStatus
 		cmd.Stdout = os.Stdout
 		cmd.Stderr = os.Stderr
-		log.Println("Exec: "+ strings.Join(cmd.Args," "))
+		if isTrace() {
+			log.Println("Exec: " + strings.Join(cmd.Args, " "))
+		}
 		if err :=cmd.Run(); err!=nil {
 			if exitError, ok := err.(*exec.ExitError); ok {
 				waitStatus = exitError.Sys().(syscall.WaitStatus)
 				return waitStatus.ExitStatus()
 			}else if execError, ok := err.(*exec.Error); ok{
-				log.Println(execError.Error())
+				if isTrace(){
+					log.Println(execError.Error())
+				}
 				return 999
 			}else{
 				log.Panic("Process error not controlled")
@@ -59,7 +65,7 @@ func CommandCaptureOutput(name string, arg...string) (string,error){
 func CommandCaptureOutputStdin(stdin string, name string, arg...string) (string, error) {
 	if isDebug() {
 		log.Println(name,arg)
-		return strconv.FormatInt(time.Now().UnixNano(),10),nil
+		return "oQV6w3iAV7q3kAP6nYRfr54uFaCy7gnOZ/u1SLGUwCw=",nil
 	}else {
 		cmd := exec.Command(name, arg...)
 		log.Println("Exec: " + strings.Join(cmd.Args, " "))

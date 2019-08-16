@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
+	"time"
 )
 
 type KVDBRepository struct {
@@ -29,7 +30,8 @@ func NewKVDBRepository() PeerRepository {
 
 func (repository *KVDBRepository) CreateBucket() (string,error) {
 	response := ""
-	resp, err := http.Post(repository.ServerURL.String(),"application/json",nil)
+	client := http.Client{Timeout: time.Duration(5 * time.Second)}
+	resp, err := client.Post(repository.ServerURL.String(),"application/json",nil)
 	if err!=nil {
 		log.Fatal(err)
 	}
@@ -49,7 +51,8 @@ func (repository *KVDBRepository) CreateBucket() (string,error) {
 
 
 func (repository *KVDBRepository) FindAll(bucket string) ([]*MeshRemotePeer,error) {
-	resp, err:= http.Get(repository.ServerURL.String()+"/"+bucket+"/?format=json&values=true")
+	client := http.Client{Timeout: time.Duration(5 * time.Second)}
+	resp, err:= client.Get(repository.ServerURL.String()+"/"+bucket+"/?format=json&values=true")
 	if err!=nil {
 		return nil,err
 	}
@@ -88,7 +91,8 @@ func  (repository *KVDBRepository) Store(bucket string,peer MeshRemotePeer) erro
 	}
 	publicKeyB64 := base64.StdEncoding.EncodeToString([]byte(peer.PublicKey))
 	url := repository.ServerURL.String()+"/"+bucket+"/"+publicKeyB64+"?ttl=" + strconv.Itoa(peer.KeepAlive *2)
-	resp, err := http.Post(url,"application/json",bytes.NewReader(bytesJSON))
+	client := http.Client{Timeout: time.Duration(5 * time.Second)}
+	resp, err := client.Post(url,"application/json",bytes.NewReader(bytesJSON))
 	if err!=nil {
 		return err
 	}

@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -49,7 +50,8 @@ func (hostgw *HostGatewayNetworkService) LinkPeer(localPeer *MeshLocalPeer,peer 
 	}
 
 	if peer.HostGWMode {
-		log.Println("---->New Peer (Host-GW) discovered " + peer.PublicKey)
+		allowedIPS:=strings.Join(localPeer.AllowedIPs,",")
+		log.Println("New Peer (Host-GW) " + peer.PublicKey + " (privateIP=" + allowedIPS+" publicIP="+ peer.PublicIP+":"+strconv.Itoa(peer.PublicPort)+ ")")
 		for _,subnet := range  peer.AllowedIPs {
 			cmd.Command("ip","route","del",subnet)
 			exitCode := cmd.Command("ip","route","add",subnet,"via",peer.HostGWIp)
@@ -85,7 +87,8 @@ func (hostgw *HostGatewayNetworkService) checkStatus(ip string,peer *MeshRemoteP
 
 func (hostgw *HostGatewayNetworkService) UpdatePeer(localPeer *MeshLocalPeer,beforeUpdatePeer *MeshRemotePeer,afterUpdatePeer *MeshRemotePeer) {
 	if beforeUpdatePeer.HostGWMode {
-		log.Println("---->Peer Update (Host-GW) " + beforeUpdatePeer.PublicKey)
+		allowedIPS:=strings.Join(localPeer.AllowedIPs,",")
+		log.Println("Peer Update (Host-GW) " + beforeUpdatePeer.PublicKey + " (privateIP=" + allowedIPS+" publicIP="+ beforeUpdatePeer.PublicIP+":"+strconv.Itoa(beforeUpdatePeer.PublicPort)+ ")")
 		hostgw.UnlinkPeer(localPeer,beforeUpdatePeer)
 		hostgw.LinkPeer(localPeer,afterUpdatePeer)
 	}else{
@@ -95,7 +98,8 @@ func (hostgw *HostGatewayNetworkService) UpdatePeer(localPeer *MeshLocalPeer,bef
 
 func (hostgw *HostGatewayNetworkService) UnlinkPeer(localPeer *MeshLocalPeer,peer *MeshRemotePeer) {
 	if peer.HostGWMode {
-		log.Println("---->Unlink Peer (Host-GW) " + peer.PublicKey)
+		allowedIPS:=strings.Join(localPeer.AllowedIPs,",")
+		log.Println("Unlink Update (Host-GW) " + peer.PublicKey + " (privateIP=" + allowedIPS+" publicIP="+ peer.PublicIP+":"+strconv.Itoa(peer.PublicPort)+ ")")
 		for _,subnet := range  peer.AllowedIPs {
 			cmd.Command("ip", "route", "del", subnet)
 		}
