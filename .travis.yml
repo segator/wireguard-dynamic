@@ -1,0 +1,23 @@
+language: go
+go:
+  - 1.10.x
+env:
+  - "PATH=/home/travis/gopath/bin:$PATH"
+
+
+before_install:
+  - go get github.com/mitchellh/gox
+  - go get github.com/tcnksm/ghr
+  - go get github.com/pkg/errors
+script:
+- go build
+install:
+- gox -osarch="linux/amd64" -osarch="linux/arm" -output "dist/{{.OS}}_{{.Arch}}_{{.Dir}}_$TRAVIS_BRANCH"
+deploy:
+    provider: releases
+    file_glob: true
+    api_key: $GITHUB_TOKEN
+    file: dist/*
+    skip_cleanup: true
+    on:
+      tags: true
