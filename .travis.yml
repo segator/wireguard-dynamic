@@ -1,11 +1,12 @@
 language: go
 go:
-  - 1.10.x
+  - 1.13.x
 env:
   - "PATH=/home/travis/gopath/bin:$PATH"
 
 
 before_install:
+  - go get github.com/mitchellh/gox
   - go get
 script:
 - go build
