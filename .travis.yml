@@ -6,9 +6,7 @@ env:
 
 
 before_install:
-  - go get github.com/mitchellh/gox
-  - go get github.com/tcnksm/ghr
-  - go get github.com/pkg/errors
+  - go get
 script:
 - go build
 install:
