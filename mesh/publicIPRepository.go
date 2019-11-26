@@ -1,6 +1,7 @@
 package mesh
 
 import (
+	"context"
 	"io/ioutil"
 	"math/rand"
 	"net"
@@ -18,9 +19,14 @@ type publicIPRepoProviders struct{
 
 func NewPublicIPRepository() PublicIPRepository {
 	var providers = []string{"https://api.ipify.org/","http://ifconfig.io/ip","http://ipecho.net/plain","http://icanhazip.com","https://ifconfig.me/ip","https://myexternalip.com/raw"}
+	dialer := &net.Dialer{
+		Timeout:   time.Duration(5 * time.Second),
+	}
+	http.DefaultTransport.(*http.Transport).DialContext = func(ctx context.Context, _, addr string) (net.Conn, error) {
+		return dialer.DialContext(ctx, "tcp4", addr)
+	}
 	return &publicIPRepoProviders{
 		providers: providers,
-
 	}
 }
 
