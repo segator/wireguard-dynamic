@@ -44,7 +44,7 @@ func NewPublicIPRepository() PublicIPRepository {
 
 func (repoProvider publicIPRepoProviders) getPublicIP() (string, error) {
 	numRand := rand.Intn(len(repoProvider.providers) - 0)
-	client := http.Client{Timeout: time.Duration(5 * time.Second)}
+	client := http.Client{Transport: repoProvider.transport, Timeout: time.Duration(5 * time.Second)}
 	resp, err:= client.Get(repoProvider.providers[numRand])
 	if err!=nil {
 		return "",err

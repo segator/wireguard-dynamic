@@ -74,6 +74,7 @@ func  (meshService *SimpleMeshService) JoinMesh(mesh Mesh,localPeer MeshLocalPee
 	peersStoredInterface,err :=retry.Do(func()  (interface{},*retry.RetryError){
 		peersStored,err := meshService.repository.FindAll(mesh.MeshID)
 		if err!=nil {
+			log.Println("Error found when trying to fetch key", mesh.MeshID,err)
 			return nil,&retry.RetryError{true,err	}
 		}
 		return peersStored,nil

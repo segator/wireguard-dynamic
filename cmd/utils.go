@@ -24,7 +24,7 @@ func ValidateCommand(exitCode int){
 }
 func Command(name string, arg...string) int{
 	if isDebug() {
-		//log.Println(name,arg)
+		log.Println(name,arg)
 		return 0
 	}else{
 		cmd := exec.Command(name, arg...)
