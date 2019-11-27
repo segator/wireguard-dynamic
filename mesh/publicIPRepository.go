@@ -13,20 +13,32 @@ import (
 
 type publicIPRepoProviders struct{
 	providers []string
+	transport *http.Transport
 }
 
 
 
 func NewPublicIPRepository() PublicIPRepository {
 	var providers = []string{"https://api.ipify.org/","http://ifconfig.io/ip","http://ipecho.net/plain","http://icanhazip.com","https://ifconfig.me/ip","https://myexternalip.com/raw"}
+
 	dialer := &net.Dialer{
-		Timeout:   time.Duration(5 * time.Second),
+		Timeout:   10 * time.Second,
+		KeepAlive: 10 * time.Second,
 	}
-	http.DefaultTransport.(*http.Transport).DialContext = func(ctx context.Context, _, addr string) (net.Conn, error) {
+
+	var MyTransport = &http.Transport{
+		DialContext: dialer.DialContext,
+		MaxIdleConns:          100,
+		IdleConnTimeout:       90 * time.Second,
+		TLSHandshakeTimeout:   10 * time.Second,
+		ExpectContinueTimeout: 1 * time.Second,
+	}
+	MyTransport.DialContext = func(ctx context.Context, _, addr string) (net.Conn, error) {
 		return dialer.DialContext(ctx, "tcp4", addr)
 	}
 	return &publicIPRepoProviders{
 		providers: providers,
+		transport: MyTransport,
 	}
 }
 
