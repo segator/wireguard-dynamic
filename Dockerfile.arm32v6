@@ -12,7 +12,7 @@ RUN apk add --no-cache \
         ca-certificates \
         libmnl iproute2 iptables
 
-RUN apk add wireguard-tools --no-cache --repository http://dl-cdn.alpinelinux.org/alpine/edge/testing
+RUN apk add wireguard-tools --no-cache --repository http://dl-cdn.alpinelinux.org/alpine/edge/community
 
 
 ENTRYPOINT ["/app/wg-dynamic"]
