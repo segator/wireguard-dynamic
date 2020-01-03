@@ -188,7 +188,7 @@ func monitorPublicIP(meshService *SimpleMeshService){
 		if meshService.shutdown {
 			return
 		}
-		if meshService.localPeer.AutoPublicIP {
+		if meshService.localPeer.IsCalculatedPublicIP {
 			newPublicIP := calculatePublicIP(meshService)
 			/*if(i%2==0){
 				newPublicIP="24.1.4.1"

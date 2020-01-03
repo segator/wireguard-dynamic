@@ -76,7 +76,15 @@ func (wireguard *WireGuardNetworkService) InitializeNetworkDevice(peer *MeshLoca
 func (wireguard *WireGuardNetworkService) LinkPeer(localPeer *MeshLocalPeer,peer *MeshRemotePeer) {
 	allowedIPS:=strings.Join(peer.AllowedIPs,",")
 	log.Println("New Peer(Wireguard) " + peer.PublicKey + " (privateIP=" + allowedIPS+" publicIP="+ peer.PublicIP+":"+strconv.Itoa(peer.PublicPort)+ ")")
-	exitCode  := cmd.Command("wg","set",localPeer.DeviceName,"peer",peer.PublicKey,"persistent-keepalive",strconv.Itoa(peer.KeepAlive),"allowed-ips",allowedIPS,"endpoint", peer.PublicIP+":"+strconv.Itoa(peer.PublicPort))
+	command:= []string{"wg","set",localPeer.DeviceName,"peer",peer.PublicKey,"persistent-keepalive",strconv.Itoa(peer.KeepAlive),"allowed-ips",allowedIPS}
+	/*
+	As described https://www.wireguard.com/#built-in-roaming  to reduce network cuts when clients with dynamicIP changes their IP's, nodes with staticIP avoid set endpoint
+	of peers to force peers to conect to them instead otherwise, but if both nodes have static IP then the endpoint is forced because no possible network cuts for IP changing.
+	*/
+	if localPeer.IsCalculatedPublicIP || !peer.IsCalculatedPublicIP{
+		command= append(command, "endpoint", peer.PublicIP+":"+strconv.Itoa(peer.PublicPort))
+	}
+	exitCode  := cmd.Command("wg",command...)
 	cmd.ValidateCommand(exitCode)
 	for _,subnet := range  peer.AllowedIPs {
 		cmd.Command("ip","route","del",subnet)

@@ -89,7 +89,7 @@ func main() {
 	}else if opts.join{
 		opts.meshPeer.Version=0
 		if opts.meshPeer.PublicIP == "auto" {
-			opts.meshPeer.AutoPublicIP=true
+			opts.meshPeer.IsCalculatedPublicIP=true
 			opts.meshPeer.PublicIP = ""
 		}
 		if privateIps == "auto" {

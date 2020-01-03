@@ -7,6 +7,7 @@ type Mesh struct {
 type MeshRemotePeer struct {
 	Version   int `json:"version"`
 	PublicIP  string `json:"public_ip"`
+	IsCalculatedPublicIP bool `json:"is_calculated_public_ip"`
 	AllowedIPs []string `json:"allowed_ips"`
 	PublicPort int `json:"public_port"`
 	VPNIP string `json:"vpn_ip"`
@@ -23,7 +24,6 @@ type MeshRemotePeer struct {
 
 type MeshLocalPeer struct {
 	MeshRemotePeer
-	AutoPublicIP bool
 	AutoVPNIP bool
 	DeviceName string
 	PrivateKey string  `json:"private_key"`
