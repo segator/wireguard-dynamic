@@ -76,7 +76,7 @@ func (wireguard *WireGuardNetworkService) InitializeNetworkDevice(peer *MeshLoca
 func (wireguard *WireGuardNetworkService) LinkPeer(localPeer *MeshLocalPeer,peer *MeshRemotePeer) {
 	allowedIPS:=strings.Join(peer.AllowedIPs,",")
 	log.Println("New Peer(Wireguard) " + peer.PublicKey + " (privateIP=" + allowedIPS+" publicIP="+ peer.PublicIP+":"+strconv.Itoa(peer.PublicPort)+ ")")
-	command:= []string{"wg","set",localPeer.DeviceName,"peer",peer.PublicKey,"persistent-keepalive",strconv.Itoa(peer.KeepAlive),"allowed-ips",allowedIPS}
+	command:= []string{"set",localPeer.DeviceName,"peer",peer.PublicKey,"persistent-keepalive",strconv.Itoa(peer.KeepAlive),"allowed-ips",allowedIPS}
 	/*
 	As described https://www.wireguard.com/#built-in-roaming  to reduce network cuts when clients with dynamicIP changes their IP's, nodes with staticIP avoid set endpoint
 	of peers to force peers to conect to them instead otherwise, but if both nodes have static IP then the endpoint is forced because no possible network cuts for IP changing.
