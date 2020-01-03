@@ -1,13 +1,13 @@
 package mesh
 
 import (
+	"github.com/segator/wireguard-dynamic/cmd"
 	"io"
 	"io/ioutil"
 	"log"
 	"os"
 	"strconv"
 	"strings"
-	"github.com/segator/wireguard-dynamic/cmd"
 )
 type WireGuardNetworkService struct {
 	InterfaceMTU int
@@ -96,9 +96,12 @@ func (wireguard *WireGuardNetworkService) LinkPeer(localPeer *MeshLocalPeer,peer
 
 func (wireguard *WireGuardNetworkService) UpdatePeer(localPeer *MeshLocalPeer,beforeUpdatePeer *MeshRemotePeer,afterUpdatePeer *MeshRemotePeer) {
 	allowedIPS:=strings.Join(localPeer.AllowedIPs,",")
-	log.Println("Update Peer(Wireguard) " + beforeUpdatePeer.PublicKey + " (privateIP=" + allowedIPS+" publicIP="+ beforeUpdatePeer.PublicIP+":"+strconv.Itoa(beforeUpdatePeer.PublicPort)+ ")")
-	wireguard.UnlinkPeer(localPeer,beforeUpdatePeer)
-	wireguard.LinkPeer(localPeer,afterUpdatePeer)
+	//This comparision will need to be changed when we support update configurations without reboot service or if the node private key is persistent, otherwise never will update other nodes configurations.
+	if localPeer.IsCalculatedPublicIP {
+		log.Println("Update Peer(Wireguard) " + beforeUpdatePeer.PublicKey + " (privateIP=" + allowedIPS + " publicIP=" + beforeUpdatePeer.PublicIP + ":" + strconv.Itoa(beforeUpdatePeer.PublicPort) + ")")
+		wireguard.UnlinkPeer(localPeer, beforeUpdatePeer)
+		wireguard.LinkPeer(localPeer, afterUpdatePeer)
+	}
 }
 
 func (wireguard *WireGuardNetworkService) UnlinkPeer(localPeer *MeshLocalPeer,peer *MeshRemotePeer) {
